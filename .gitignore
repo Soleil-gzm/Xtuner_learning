@@ -1,3 +1,5 @@
 colors/*
 models/
 .lock/
+.vscode/
+work_dirs/
