@@ -3,3 +3,4 @@ models/
 .lock/
 .vscode/
 work_dirs/
+xtuner/
