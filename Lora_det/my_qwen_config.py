@@ -1,33 +1,7 @@
+# 启动代码： xtuner train ./Lora_det/my_qwen_config.py --deepspeed deepspeed_zero2
+
 # Copyright (c) OpenMMLab. All rights reserved.
-def openai_map_fn(example):
-    messages = example["messages"]
-    system = ""
-    input = ""
-    conversation = []
-    while messages and messages[0]["role"] == "assistant":
-        messages = messages[1:]
-    for msg in messages:
-        if msg["role"] == "system":
-            system = msg["content"]
-        elif msg["role"] == "user":
-            input += msg["content"]
-        elif msg["role"] == "assistant":
-            output_with_loss = msg.get("loss", "True")
-            output_with_loss = str(output_with_loss)
-            output_with_loss = output_with_loss.lower() == "true"
-            conversation.append(
-                {
-                    "system": system,
-                    "input": input,
-                    "output": msg["content"],
-                    "output_with_loss": output_with_loss,
-                }
-            )
-            system = ""
-            input = ""
-        else:
-            raise NotImplementedError
-    return {"conversation": conversation}
+from map_fn.openai_map_fn import openai_map_fn
 
 import torch
 from datasets import load_dataset
@@ -66,7 +40,7 @@ pretrained_model_name_or_path = "/home/zimeng/work/projects/Xtuner_learning/mode
 use_varlen_attn = False
 
 # Data
-data_path = "datas/test_1000.jsonl"
+data_path = "datas/test.json"
 prompt_template = PROMPT_TEMPLATE.qwen_chat
 max_length = 2048
 pack_to_max_length = True
@@ -75,8 +49,8 @@ pack_to_max_length = True
 sequence_parallel_size = 1
 
 # Scheduler & Optimizer
-batch_size = 1      # 每张卡上的批大小
-accumulative_counts = 16    # 梯度累积步数
+batch_size = 8      # 每张卡上的批大小
+accumulative_counts = 8    # 梯度累积步数
 accumulative_counts *= sequence_parallel_size
 dataloader_num_workers = 0
 max_epochs = 5      # 训练轮数。数据集小可以设大一点（如 5），数据集大就设小一点（如 1-3）。
@@ -94,7 +68,12 @@ save_total_limit = 2  # Maximum checkpoints to keep (-1 means unlimited)
 # Evaluate the generation performance during the training
 evaluation_freq = 500
 SYSTEM = "你是一位来自苏宁金融的电话专员，现在你需要向以下客户提醒还款。"
-evaluation_inputs = ["我怎么还钱？", "How do I pay you back?"]
+evaluation_inputs = [
+    "我现在没钱，能不能晚点还？",
+    "你是谁？",
+    "怎么还款？",
+    "我还过了，你们怎么还来催我？",
+]
 
 #######################################################################
 #                      PART 2  Model & Tokenizer                      #
