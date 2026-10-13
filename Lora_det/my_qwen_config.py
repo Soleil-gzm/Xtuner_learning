@@ -35,26 +35,26 @@ pretrained_model_name_or_path = "models/Qwen2.5-0.5B-Instruct"
 use_varlen_attn = False
 
 # Data
-alpaca_en_path = "tatsu-lab/alpaca"
+alpaca_en_path = "datas/test.json"
 prompt_template = PROMPT_TEMPLATE.qwen_chat
 max_length = 2048
 pack_to_max_length = True
 
-# parallel
+# parallel 
 sequence_parallel_size = 1
 
 # Scheduler & Optimizer
-batch_size = 1  # per_device
-accumulative_counts = 16
+batch_size = 1      # 每张卡上的批大小
+accumulative_counts = 16    # 梯度累积步数
 accumulative_counts *= sequence_parallel_size
 dataloader_num_workers = 0
-max_epochs = 3
+max_epochs = 5      # 训练轮数。数据集小可以设大一点（如 5），数据集大就设小一点（如 1-3）。
 optim_type = AdamW
-lr = 2e-4
-betas = (0.9, 0.999)
-weight_decay = 0
-max_norm = 1  # grad clip
-warmup_ratio = 0.03
+lr = 2e-4       # 学习率。LoRA 微调常用 1e-4 到 2e-4。
+betas = (0.9, 0.999)    # AdamW 的动量参数，一般不用改。
+weight_decay = 0    # 权重衰减，LoRA 微调通常设 0。
+max_norm = 1  # 梯度裁剪阈值，防止梯度爆炸。
+warmup_ratio = 0.03     # 前 3% 的训练步数用于学习率预热，从极小值线性升到 lr。
 
 # Save
 save_steps = 500
@@ -62,8 +62,8 @@ save_total_limit = 2  # Maximum checkpoints to keep (-1 means unlimited)
 
 # Evaluate the generation performance during the training
 evaluation_freq = 500
-SYSTEM = SYSTEM_TEMPLATE.alpaca
-evaluation_inputs = ["请给我介绍五个上海的景点", "Please tell me five scenic spots in Shanghai"]
+SYSTEM = "你是一位来自苏宁金融的电话专员，现在你需要向以下客户提醒还款。"
+evaluation_inputs = ["我怎么还钱？", "How do I pay you back?"]
 
 #######################################################################
 #                      PART 2  Model & Tokenizer                      #
@@ -96,8 +96,8 @@ model = dict(
     ),
     lora=dict(
         type=LoraConfig,
-        r=64,
-        lora_alpha=16,
+        r=16,
+        lora_alpha=8,
         lora_dropout=0.1,
         bias="none",
         task_type="CAUSAL_LM",
@@ -112,7 +112,7 @@ alpaca_en = dict(
     dataset=dict(type=load_dataset, path=alpaca_en_path),
     tokenizer=tokenizer,
     max_length=max_length,
-    dataset_map_fn=alpaca_map_fn,
+    dataset_map_fn=None if prompt_template is None else alpaca_map_fn,
     template_map_fn=dict(type=template_map_fn_factory, template=prompt_template),
     remove_unused_columns=True,
     shuffle_before_pack=True,
@@ -135,7 +135,7 @@ train_dataloader = dict(
 #######################################################################
 # optimizer
 optim_wrapper = dict(
-    type=AmpOptimWrapper,
+    type=AmpOptimWrapper,       # 自动混合精度（AMP）优化器封装。FP16 计算加速，同时用动态损失缩放防止梯度下溢。
     optimizer=dict(type=optim_type, lr=lr, betas=betas, weight_decay=weight_decay),
     clip_grad=dict(max_norm=max_norm, error_if_nonfinite=False),
     accumulative_counts=accumulative_counts,
@@ -207,11 +207,11 @@ default_hooks = dict(
 
 # configure environment
 env_cfg = dict(
-    # whether to enable cudnn benchmark
-    cudnn_benchmark=False,
-    # set multi process parameters
+    # 关闭 cuDNN 自动调优，输入尺寸固定时可设 True 加速。
+    cudnn_benchmark=False,      
+    # 多进程配置，fork 是 Linux 默认方式。
     mp_cfg=dict(mp_start_method="fork", opencv_num_threads=0),
-    # set distributed parameters
+    # 分布式后端，NCCL 是 NVIDIA GPU 的标准选择。
     dist_cfg=dict(backend="nccl"),
 )
 
