@@ -4,3 +4,5 @@ models/
 .vscode/
 work_dirs/
 xtuner/
+datas/
+output/
