@@ -6,3 +6,4 @@ work_dirs/
 xtuner/
 datas/
 output/
+*__pycache__*

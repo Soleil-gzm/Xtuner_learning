@@ -27,6 +27,10 @@ from xtuner.model import SupervisedFinetune
 from xtuner.parallel.sequence import SequenceParallelSampler
 from xtuner.utils import PROMPT_TEMPLATE, SYSTEM_TEMPLATE
 
+import sys, os
+sys.path.append(os.path.dirname(__file__))
+from openai_map_fn import openai_map_fn
+
 #######################################################################
 #                          PART 1  Settings                           #
 #######################################################################
@@ -35,7 +39,7 @@ pretrained_model_name_or_path = "models/Qwen2.5-0.5B-Instruct"
 use_varlen_attn = False
 
 # Data
-alpaca_en_path = "datas/test.json"
+data_path = "datas/test_1000.jsonl"
 prompt_template = PROMPT_TEMPLATE.qwen_chat
 max_length = 2048
 pack_to_max_length = True
@@ -109,15 +113,16 @@ model = dict(
 #######################################################################
 alpaca_en = dict(
     type=process_hf_dataset,
-    dataset=dict(type=load_dataset, path=alpaca_en_path),
+    dataset=dict(type='datasets.load_dataset',path='json',data_files=data_path,),
     tokenizer=tokenizer,
     max_length=max_length,
-    dataset_map_fn=None if prompt_template is None else alpaca_map_fn,
+    dataset_map_fn=openai_map_fn,
     template_map_fn=dict(type=template_map_fn_factory, template=prompt_template),
     remove_unused_columns=True,
     shuffle_before_pack=True,
     pack_to_max_length=pack_to_max_length,
     use_varlen_attn=use_varlen_attn,
+    map_num_proc=4,  # 限制为 4 个进程，避免与 20 核任务争抢 CPU
 )
 
 sampler = SequenceParallelSampler if sequence_parallel_size > 1 else DefaultSampler
