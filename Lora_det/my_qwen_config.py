@@ -1,4 +1,34 @@
 # Copyright (c) OpenMMLab. All rights reserved.
+def openai_map_fn(example):
+    messages = example["messages"]
+    system = ""
+    input = ""
+    conversation = []
+    while messages and messages[0]["role"] == "assistant":
+        messages = messages[1:]
+    for msg in messages:
+        if msg["role"] == "system":
+            system = msg["content"]
+        elif msg["role"] == "user":
+            input += msg["content"]
+        elif msg["role"] == "assistant":
+            output_with_loss = msg.get("loss", "True")
+            output_with_loss = str(output_with_loss)
+            output_with_loss = output_with_loss.lower() == "true"
+            conversation.append(
+                {
+                    "system": system,
+                    "input": input,
+                    "output": msg["content"],
+                    "output_with_loss": output_with_loss,
+                }
+            )
+            system = ""
+            input = ""
+        else:
+            raise NotImplementedError
+    return {"conversation": conversation}
+
 import torch
 from datasets import load_dataset
 from mmengine.dataset import DefaultSampler
@@ -27,15 +57,12 @@ from xtuner.model import SupervisedFinetune
 from xtuner.parallel.sequence import SequenceParallelSampler
 from xtuner.utils import PROMPT_TEMPLATE, SYSTEM_TEMPLATE
 
-import sys, os
-sys.path.append(os.path.dirname(__file__))
-from openai_map_fn import openai_map_fn
 
 #######################################################################
 #                          PART 1  Settings                           #
 #######################################################################
 # Model
-pretrained_model_name_or_path = "models/Qwen2.5-0.5B-Instruct"
+pretrained_model_name_or_path = "/home/zimeng/work/projects/Xtuner_learning/models/Qwen2.5-0.5B-Instruct"
 use_varlen_attn = False
 
 # Data
