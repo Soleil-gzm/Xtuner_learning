@@ -1,5 +1,11 @@
 # 启动代码： xtuner train ./Lora_det/my_qwen_config.py --deepspeed deepspeed_zero2
 
+""" 
+xtuner train ./Lora_det/my_qwen_config.py \
+    --work-dir ./work_dirs/tea_lr2e4_bs8 \
+    --deepspeed deepspeed_zero2
+"""
+
 # Copyright (c) OpenMMLab. All rights reserved.
 from map_fn.openai_map_fn import openai_map_fn
 
@@ -40,7 +46,7 @@ pretrained_model_name_or_path = "/home/zimeng/work/projects/Xtuner_learning/mode
 use_varlen_attn = False
 
 # Data
-data_path = "datas/test.json"
+data_path = "datas/milktea_vip_callback_generate_10000_11_20261015_093053.json"
 prompt_template = PROMPT_TEMPLATE.qwen_chat
 max_length = 2048
 pack_to_max_length = True
@@ -67,12 +73,12 @@ save_total_limit = 2  # Maximum checkpoints to keep (-1 means unlimited)
 
 # Evaluate the generation performance during the training
 evaluation_freq = 500
-SYSTEM = "你是一位来自苏宁金融的电话专员，现在你需要向以下客户提醒还款。"
+SYSTEM = "你是一位来自茗香茶饮的会员回访专员，现在你需要致电以下会员，告知其积分情况并引导到店消费。"
 evaluation_inputs = [
-    "我现在没钱，能不能晚点还？",
-    "你是谁？",
-    "怎么还款？",
-    "我还过了，你们怎么还来催我？",
+    "现在有什么活动啊？",
+    "我还有多少积分？",
+    "你们是哪家门店？",
+    "我的积分什么时候到账？",
 ]
 
 #######################################################################
@@ -227,7 +233,8 @@ env_cfg = dict(
 )
 
 # set visualizer
-visualizer = None
+from mmengine.visualization import Visualizer, TensorboardVisBackend
+visualizer = dict(type=Visualizer, vis_backends=[dict(type=TensorboardVisBackend)])
 
 # set log level
 log_level = "INFO"
