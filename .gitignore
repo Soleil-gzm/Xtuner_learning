@@ -8,3 +8,4 @@ datas/
 output/
 *__pycache__*
 xtuner_custom.egg-info/
+ollama-linux/
