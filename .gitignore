@@ -11,3 +11,4 @@ xtuner_custom.egg-info/
 ollama-linux/
 stateful_rag_dialog_engine/models/*
 stateful_rag_dialog_engine/ft/*
+stateful_rag_dialog_engine/output-check.json
