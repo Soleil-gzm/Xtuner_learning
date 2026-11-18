@@ -38,7 +38,7 @@ pretrained_model_name_or_path = "/home/zimeng/work/projects/Xtuner_learning/stat
 use_varlen_attn = False
 
 # Data
-data_path = "/home/zimeng/work/projects/Xtuner_learning/stateful_rag_dialog_engine/output-check.json"
+data_path = "/home/zimeng/work/projects/Xtuner_learning/stateful_rag_dialog_engine/track_data_pr/train-check.json"
 prompt_template = PROMPT_TEMPLATE.qwen_chat
 max_length = 2048
 pack_to_max_length = True

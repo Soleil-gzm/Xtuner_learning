@@ -12,3 +12,5 @@ ollama-linux/
 stateful_rag_dialog_engine/models/*
 stateful_rag_dialog_engine/ft/*
 stateful_rag_dialog_engine/output-check.json
+stateful_rag_dialog_engine/track_data_pr/test-check.json
+stateful_rag_dialog_engine/track_data_pr/train-check.json
