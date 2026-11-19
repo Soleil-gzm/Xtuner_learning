@@ -7,9 +7,9 @@ from peft import PeftModel
 # 基础模型路径
 base_model_path = "/home/zimeng/work/projects/Xtuner_learning/stateful_rag_dialog_engine/models/Qwen2.5-1.5B-Instruct"
 # 刚刚转换出来的 Adapter 路径
-adapter_path = "./ft/test/hf_adapter"
+adapter_path = "/home/zimeng/work/projects/Xtuner_learning/stateful_rag_dialog_engine/ft/test/hf_adapter_16390"
 # 测试集路径
-test_data_path = "./test_data.json"  # 改成你的测试集文件名
+test_data_path = "/home/zimeng/work/projects/Xtuner_learning/stateful_rag_dialog_engine/track_data_pr/test-check.json"  # 改成你的测试集文件名
 
 # ================= 1. 加载模型 =================
 print("正在加载模型...")
@@ -77,7 +77,7 @@ def evaluate():
             outputs = model.generate(
                 **inputs, 
                 max_new_tokens=64, 
-                do_sample=False, # 路由任务必须用贪心解码，保证输出稳定
+                do_sample=True, # 路由任务必须用贪心解码，保证输出稳定
                 pad_token_id=tokenizer.eos_token_id
             )
         
